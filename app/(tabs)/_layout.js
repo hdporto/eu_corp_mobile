@@ -1,4 +1,4 @@
-import { StyleSheet, View, StatusBar, TouchableOpacity } from "react-native";
+import { StyleSheet, View, StatusBar, TouchableOpacity, Text } from "react-native";
 import React from "react";
 import { Tabs } from "expo-router";
 import { useRouter } from "expo-router";
@@ -6,121 +6,111 @@ import { Feather } from "@expo/vector-icons";
 
 const TabsLayout = () => {
   const router = useRouter();
+  
   return (
-    <Tabs
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: "#610000",
-        },
-        headerTitle: "",
-        headerRight: () => (
-          <View style={styles.headerIconsContainer}>
-            <StatusBar barStyle={"light-content"} backgroundColor={"#323232"} />
-            <TouchableOpacity onPress={() => router.push("home/profile")}>
-              <Feather name="user" size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push("home/notifications")}
-              style={styles.notificationIcon}
-            >
-              <Feather name="bell" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        ),
-        tabBarActiveTintColor: "#fff",
-        tabBarStyle: {
-          position: "absolute",
-          backgroundColor: "#610000",
-          borderTopColor: "transparent",
-          borderRadius: 30,
-          marginHorizontal: 16,
-          marginBottom: 12,
-          height: 60,
-          elevation: 8,
-          shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowOffset: { width: 0, height: 4 },
-          shadowRadius: 10,
-          paddingBottom: 6,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: "Home",
-          headerTitleAlign: "center",
-          headerTitle: () => (
-            <View style={styles.headerTitleContainer}>
-              <Feather name="home" size={30} color="#fff" />
-            </View>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="home" size={size} color={color} />
-          ),
+    <>
+      <StatusBar barStyle={"light-content"} backgroundColor={"#610000"} />
+      <View style={styles.headerContainer}>
+        <View style={styles.headerLeftContainer}>
+          <Text style={styles.appName}>EuCorp</Text>
+        </View>
+        <View style={styles.headerRightContainer}>
+          <TouchableOpacity onPress={() => router.push("home/profile")}>
+            <Feather name="user" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("home/notifications")}
+            style={styles.notificationIcon}
+          >
+            <Feather name="bell" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: "#fff",
+          tabBarStyle: styles.tabBarStyle,
+          headerShown: false,
         }}
-      />
-      <Tabs.Screen
-        name="risks"
-        options={{
-          title: "Risks",
-          headerTitleAlign: "center",
-          headerTitle: () => (
-            <View style={styles.headerTitleContainer}>
-              <Feather name="alert-circle" size={30} color="#fff" />
-            </View>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="alert-circle" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="plans"
-        options={{
-          title: "Plans",
-          headerTitleAlign: "center",
-          headerTitle: () => (
-            <View style={styles.headerTitleContainer}>
-              <Feather name="clipboard" size={30} color="#fff" />
-            </View>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="clipboard" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="opportunities"
-        options={{
-          title: "Opportunity",
-          headerTitleAlign: "center",
-          headerTitle: () => (
-            <View style={styles.headerTitleContainer}>
-              <Feather name="trending-up" size={30} color="#fff" />
-            </View>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="trending-up" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color, size }) => (
+              <Feather name="home" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="risks"
+          options={{
+            title: "Risks",
+            tabBarIcon: ({ color, size }) => (
+              <Feather name="alert-circle" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="plans"
+          options={{
+            title: "Plans",
+            tabBarIcon: ({ color, size }) => (
+              <Feather name="clipboard" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="opportunities"
+          options={{
+            title: "Opportunities",
+            tabBarIcon: ({ color, size }) => (
+              <Feather name="trending-up" size={size} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
+    </>
   );
 };
 
 export default TabsLayout;
 
 const styles = StyleSheet.create({
-  headerIconsContainer: {
+  headerContainer: {
     flexDirection: "row",
-    marginRight: 20,
-    marginBottom: 28,
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#610000",
+    height: 60,
+    paddingHorizontal: 10,
   },
-  headerTitleContainer: {
-    marginBottom: 28,
+  headerLeftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  appName: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   notificationIcon: {
     marginLeft: 15,
+  },
+  tabBarStyle: {
+    position: "absolute",
+    backgroundColor: "#610000",
+    borderTopColor: "transparent",
+    borderRadius: 8,
+    height: 60,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    paddingBottom: 6,
   },
 });

@@ -1,26 +1,18 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, RefreshControl } from "react-native";
 import React, { useEffect, useState } from "react";
 import useNotifications from "../../../utils/useNotifications";
 import NotificationService from "../../../utils/NotificationService";
-import {
-  fetchNotifications,
-  markNotificationAsRead,
-  deleteNotifications,
-  supabase,
-} from "../../../utils/supabaseClient";
+import {fetchNotifications, markNotificationAsRead, deleteNotifications, supabase,} from "../../../utils/supabaseClient";
+import { Ionicons } from "@expo/vector-icons";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const loadNotifications = async () => {
+      setLoading(true);
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -39,6 +31,9 @@ const Notifications = () => {
 
   const handleNotificationPress = async (notification) => {
     await markNotificationAsRead(notification.id);
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n))
+    );
   };
 
   const handleDeleteNotification = async (notificationId) => {
@@ -48,43 +43,99 @@ const Notifications = () => {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadNotifications(); // Reuse the loadNotifications function to refresh
+    setRefreshing(false);
+  };
+
+  const groupNotificationsByDate = (notifications) => {
+    const grouped = {};
+
+    notifications.forEach((notification) => {
+      const date = new Date(notification.created_at);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      let dateString;
+
+      if (date.toDateString() === today.toDateString()) {
+        dateString = "Today";
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        dateString = "Yesterday";
+      } else {
+        dateString = date.toLocaleDateString(); // Format this to your preference
+      }
+
+      if (!grouped[dateString]) {
+        grouped[dateString] = [];
+      }
+      grouped[dateString].push(notification);
+    });
+
+    return grouped;
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text>Loading notifications...</Text>
+        <Text style={styles.loadingText}>Loading notifications...</Text>
       </View>
     );
   }
 
+  const groupedNotifications = groupNotificationsByDate(notifications);
+  const groupedKeys = Object.keys(groupedNotifications);
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View
-            style={[
-              styles.notificationCard,
-              item.is_read
-                ? styles.readNotification
-                : styles.unreadNotification,
-            ]}
-          >
-            <TouchableOpacity onPress={() => handleNotificationPress(item)}>
-              <Text style={styles.message}>{item.message}</Text>
-              <Text style={styles.timestamp}>
-                {new Date(item.created_at).toLocaleDateString()}{" "}
-                {new Date(item.created_at).toLocaleTimeString()}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDeleteNotification(item.id)}
-            >
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
+        data={groupedKeys}
+        keyExtractor={(item) => item}
+        renderItem={({ item: dateKey }) => (
+          <View>
+            <Text style={styles.dateHeader}>{dateKey}</Text>
+            {groupedNotifications[dateKey].map((item) => (
+              <View
+                key={item.id}
+                style={[
+                  styles.notificationCard,
+                  item.is_read ? styles.readNotification : styles.unreadNotification,
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => handleNotificationPress(item)}
+                  style={styles.notificationContent}
+                >
+                  <Ionicons
+                    name={item.is_read ? "notifications-outline" : "notifications"}
+                    size={24}
+                    color={item.is_read ? "#B0BEC5" : "#009688"}
+                    style={styles.notificationIcon}
+                  />
+                  <View style={styles.notificationText}>
+                    <Text style={styles.message}>{item.message}</Text>
+                    <Text style={styles.timestamp}>
+                      {new Date(item.created_at).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteNotification(item.id)}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
         )}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </View>
   );
@@ -96,43 +147,63 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#212121",
+    backgroundColor: "#121212", // Dark mode background
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#ddd", // Light color for better contrast
+    textAlign: "center",
+    marginTop: 50,
+  },
+  dateHeader: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: 10,
+    color: "#fff",
   },
   notificationCard: {
+    flexDirection: "row",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     marginBottom: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+    backgroundColor: "#1E1E1E", // Dark card background
   },
   unreadNotification: {
-    backgroundColor: "#e0f7fa",
+    borderLeftWidth: 4,
+    borderLeftColor: "#009688",
   },
   readNotification: {
-    backgroundColor: "#fafafa",
+    backgroundColor: "#2E2E2E", // Slightly lighter for read notifications
+  },
+  notificationContent: {
+    flexDirection: "row",
+    flex: 1,
+  },
+  notificationIcon: {
+    marginRight: 10,
+  },
+  notificationText: {
+    flex: 1,
   },
   message: {
     fontSize: 16,
-    color: "#333",
+    color: "#fff", // Light color for message text
   },
   timestamp: {
     fontSize: 12,
-    color: "#999",
-    marginTop: 8,
-    textAlign: "right",
+    color: "#bbb", 
+    marginTop: 4,
   },
   deleteButton: {
-    position: "absolute",
-    right: 10,
-    top: 10,
-    padding: 8,
-    backgroundColor: "#ff5252",
-    borderRadius: 4,
-  },
-  deleteButtonText: {
-    color: "#fff",
-    fontSize: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FF5252",
+    borderRadius: 50,
+    width: 30,
+    height: 30,
   },
 });

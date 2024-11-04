@@ -5,13 +5,12 @@ import {
   View,
   TextInput,
   Image,
-  Button,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabaseClient";
 import * as ImagePicker from "expo-image-picker";
-import { TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 
 const Profile = () => {
@@ -27,10 +26,7 @@ const Profile = () => {
 
   useEffect(() => {
     const loadProfile = async () => {
-      // Get the session directly from Supabase
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
 
       if (session) {
@@ -107,8 +103,7 @@ const Profile = () => {
   };
 
   const pickImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
       Alert.alert("Permission to access camera roll is required!");
@@ -138,63 +133,63 @@ const Profile = () => {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: "#212121" }}>
-      <View style={styles.container}>
-        <Text style={styles.header}>Profile</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Profile</Text>
+      </View>
 
-        <View style={styles.imageContainer}>
-          {profilePic ? (
-            <Image source={{ uri: profilePic }} style={styles.profileImage} />
-          ) : (
-            <Text style={styles.imagePlaceholder}>No profile picture</Text>
-          )}
-          <TouchableOpacity onPress={pickImage}>
-            <Text style={styles.hoverText}>Change Profile Picture</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>First Name</Text>
-          <TextInput
-            style={styles.input}
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Last Name</Text>
-          <TextInput
-            style={styles.input}
-            value={lastName}
-            onChangeText={setLastName}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            editable={false}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleSave}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? "Saving..." : "Save Profile"}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
+      <View style={styles.imageContainer}>
+        {profilePic ? (
+          <Image source={{ uri: profilePic }} style={styles.profileImage} />
+        ) : (
+          <Text style={styles.imagePlaceholder}>No profile picture</Text>
+        )}
+        <TouchableOpacity onPress={pickImage} style={styles.changePicButton}>
+          <Text style={styles.changePicText}>Change Profile Picture</Text>
         </TouchableOpacity>
       </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>First Name</Text>
+        <TextInput
+          style={styles.input}
+          value={firstName}
+          onChangeText={setFirstName}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Last Name</Text>
+        <TextInput
+          style={styles.input}
+          value={lastName}
+          onChangeText={setLastName}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          editable={false}
+        />
+      </View>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSave}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>
+          {loading ? "Saving..." : "Save Profile"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -204,14 +199,18 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    backgroundColor: "#212121",
     padding: 20,
+    paddingBottom: 300,
   },
   header: {
-    fontSize: 24,
-    fontWeight: "bold",
     marginBottom: 20,
+    alignItems: "center",
+  },
+  headerText: {
+    fontSize: 30,
+    fontWeight: "bold",
     color: "#fff",
-    textAlign: "center",
   },
   imageContainer: {
     alignItems: "center",
@@ -219,17 +218,30 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     marginBottom: 10,
   },
   imagePlaceholder: {
     fontSize: 16,
+    color: "#B0BEC5",
+    textAlign: "center",
+  },
+  changePicButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    backgroundColor: "#009688",
+  },
+  changePicText: {
     color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   inputContainer: {
-    marginBottom: 15,
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
@@ -259,6 +271,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginTop: 20,
+    marginBottom: 100,
     backgroundColor: "#dc3545",
     paddingVertical: 15,
     borderRadius: 8,
@@ -268,12 +281,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
-  },
-  hoverText: {
-    color: "#007bff",
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 14,
-    opacity: 0.7,
   },
 });

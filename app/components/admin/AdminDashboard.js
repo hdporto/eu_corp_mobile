@@ -80,7 +80,6 @@ const AdminDashboard = () => {
   //   requestPermissions();
   // }, []);
 
-  // Animations on mount
 
   const router = useRouter();
 
@@ -116,7 +115,7 @@ const AdminDashboard = () => {
   };
 
   const VALUES = {
-    MANPOWER: 2,
+    MANPOWER: 80,
     FINANCIAL: 3,
     ENVIRONMENTAL: 3,
     SAFETY: 2,

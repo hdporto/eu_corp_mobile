@@ -50,7 +50,7 @@ export default function IndexPage() {
           setLoading(false);
         }
       } else {
-        router.replace("/(auth)/login");
+        router.replace("/(auth)/welcome");
         setLoading(false);
       }
     };
