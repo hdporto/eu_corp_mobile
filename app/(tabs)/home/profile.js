@@ -31,47 +31,52 @@ const Profile = () => {
         data: { session },
       } = await supabase.auth.getSession();
       setSession(session);
-
+  
       if (session) {
         setEmail(session.user.email);
-
+  
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
-
+  
         if (error) {
           console.error("Error fetching profile:", error.message);
           return;
         }
-
+  
         if (data) {
           setFirstName(data.first_name || "");
           setLastName(data.last_name || "");
           setProfilePic(data.profile_pic || null);
           setProfileExists(true);
-
-          // Fetch department name based on department_id
-          const { data: departmentData, error: deptError } = await supabase
-            .from("departments")
-            .select("name")
-            .eq("id", data.department_id) // Assuming department_id is available in profile data
-            .single();
-
-          if (deptError) {
-            console.error("Error fetching department:", deptError.message);
-            return;
+  
+          if (data.department_id) {
+            // Fetch department name based on department_id
+            const { data: departmentData, error: deptError } = await supabase
+              .from("departments")
+              .select("name")
+              .eq("id", data.department_id)
+              .single();
+  
+            if (deptError) {
+              console.error("Error fetching department:", deptError.message);
+              setDepartmentName("N/A");
+              return;
+            }
+  
+            setDepartmentName(departmentData ? departmentData.name : "Unknown");
+          } else {
+            setDepartmentName("N/A");
           }
-
-          setDepartmentName(departmentData ? departmentData.name : "Unknown");
         }
       }
     };
-
+  
     loadProfile();
   }, []);
-
+  
   const handleInsert = async () => {
     const { error } = await supabase.from("profiles").insert({
       id: session.user.id,

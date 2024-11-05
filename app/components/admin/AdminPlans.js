@@ -127,8 +127,8 @@ const PlansScreen = () => {
           donut
           data={pieData}
           sectionAutoFocus
-          radius={120}
-          innerRadius={80}
+          radius={80}
+          innerRadius={60}
           innerCircleColor={"#323232"}
           centerLabelComponent={() => (
             <Text style={styles.centerLabel}>{achievedPercentage}%</Text>
@@ -221,7 +221,6 @@ const styles = StyleSheet.create({
   },
   pieChartContainer: {
     alignItems: "center",
-    marginBottom: 20,
     backgroundColor: "#323232",
     borderBottomLeftRadius: 80,
     borderBottomRightRadius: 80,
