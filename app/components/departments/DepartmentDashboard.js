@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#323232",
     borderRadius: 12,
     padding: 10,
-    width: "100%",
+    width: "90%",
   },
   title: {
     fontSize: 24,
