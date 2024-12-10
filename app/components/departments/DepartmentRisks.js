@@ -171,9 +171,13 @@ const DepartmentRisks = () => {
   );
 
   const renderLegendComponent = () => {
-    const availableClassifications = [
-      ...new Set(filteredData.map((item) => item.classification)),
-    ];
+    const classificationCounts = riskMonitoring.reduce((acc, item) => {
+      const key = item.classification || "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const availableClassifications = Object.keys(classificationCounts);
 
     return (
       <View style={styles.legendContainer}>
@@ -181,7 +185,9 @@ const DepartmentRisks = () => {
           {availableClassifications.slice(0, 4).map((classification) => (
             <View key={classification} style={styles.legendItem}>
               {renderDot(COLORS[classification] || COLORS.Unknown)}
-              <Text style={styles.legendText}>{classification}</Text>
+              <Text style={styles.legendText}>
+                {classification} {classificationCounts[classification]}
+              </Text>
             </View>
           ))}
         </View>
@@ -189,7 +195,9 @@ const DepartmentRisks = () => {
           {availableClassifications.slice(4).map((classification) => (
             <View key={classification} style={styles.legendItem}>
               {renderDot(COLORS[classification] || COLORS.Unknown)}
-              <Text style={styles.legendText}>{classification}</Text>
+              <Text style={styles.legendText}>
+                {classification} ({classificationCounts[classification]})
+              </Text>
             </View>
           ))}
         </View>
@@ -381,8 +389,10 @@ const DepartmentRisks = () => {
                       ? "Achieved"
                       : "Still Mitigating"}
                   </Text>
-                  <MaterialIcons name="rectangle" size={24} color="black" />
+                  {/* <MaterialIcons name="rectangle" size={24} color="black" />
                   <Entypo name="arrow-bold-right" size={24} color="black" />
+                  <Entypo name="arrow-bold-down" size={24} color="black" />
+                  <Entypo name="arrow-bold-up" size={24} color="black" /> */}
                 </ScrollView>
               </TouchableOpacity>
             </TouchableOpacity>
