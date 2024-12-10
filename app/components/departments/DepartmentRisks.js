@@ -15,6 +15,7 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
+import Entypo from "@expo/vector-icons/Entypo";
 
 const COLORS = {
   Manpower: "#FF5722",
@@ -34,7 +35,6 @@ const DepartmentRisks = () => {
   const [selectedRisk, setSelectedRisk] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [showClassificationModal, setShowClassificationModal] = useState(false);
-  const [selectedClassification, setSelectedClassification] = useState(null);
 
   const handleClassificationFilter = (classification) => {
     if (classification === activeFilter) {
@@ -206,7 +206,6 @@ const DepartmentRisks = () => {
     "Social/Behavior": (
       <MaterialIcons name="people-alt" size={24} color="#BB86FC" />
     ),
-    Unknown: <FontAwesome5 name="question-circle" size={24} color="#BB86FC" />,
   };
 
   const renderRiskItem = ({ item }) => (
@@ -244,18 +243,14 @@ const DepartmentRisks = () => {
               radius={80}
               innerRadius={60}
               innerCircleColor={"#1E1E1E"}
-              centerLabelComponent={() => <View></View>}
+              centerLabelComponent={() => (
+                <TouchableOpacity
+                  onPress={() => setShowClassificationModal(true)}
+                >
+                  <SimpleLineIcons name="options" size={24} color="#BB86FC" />
+                </TouchableOpacity>
+              )}
             />
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => setShowClassificationModal(true)}
-            >
-              <SimpleLineIcons
-                name="options-vertical"
-                size={24}
-                color="#BB86FC"
-              />
-            </TouchableOpacity>
             {renderLegendComponent()}
           </View>
 
@@ -307,7 +302,7 @@ const DepartmentRisks = () => {
           <Modal
             visible={showClassificationModal}
             transparent={true}
-            animationType="slide"
+            animationType="fade"
             onRequestClose={() => setShowClassificationModal(false)}
           >
             <TouchableOpacity
@@ -351,14 +346,15 @@ const DepartmentRisks = () => {
           <Modal
             visible={selectedRisk !== null}
             transparent={true}
-            animationType="slide"
+            animationType="fade"
             onRequestClose={() => setSelectedRisk(null)}
           >
             <TouchableOpacity
               style={styles.modalBackground}
               onPress={() => setSelectedRisk(null)}
+              activeOpacity={1}
             >
-              <View style={styles.modalContainer}>
+              <TouchableOpacity activeOpacity={1} style={styles.modalContainer}>
                 <ScrollView>
                   <Text style={styles.modalTitle}>
                     {selectedRisk?.risk_statement}
@@ -385,8 +381,10 @@ const DepartmentRisks = () => {
                       ? "Achieved"
                       : "Still Mitigating"}
                   </Text>
+                  <MaterialIcons name="rectangle" size={24} color="black" />
+                  <Entypo name="arrow-bold-right" size={24} color="black" />
                 </ScrollView>
-              </View>
+              </TouchableOpacity>
             </TouchableOpacity>
           </Modal>
         </>
@@ -437,7 +435,7 @@ const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 18,
+    marginBottom: 16,
   },
   filterButton: {
     paddingHorizontal: 24,
@@ -478,15 +476,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     justifyContent: "center",
     alignItems: "center",
-  },
-  iconButton: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    zIndex: 1,
-    backgroundColor: "#1E1E1E",
-    borderRadius: 50,
-    padding: 5,
   },
   riskDetails: {
     color: "#BBB",
