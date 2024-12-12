@@ -18,9 +18,13 @@ const AdminDashboard = () => {
   const [plansData, setPlansData] = useState([]);
   const [opportunitiesData, setOpportunitiesData] = useState([]);
   const [user, setUser] = useState(null);
-  const [firstName, setFirstName] = useState("User"); // Added state for firstName
+  const [firstName, setFirstName] = useState("User");
+  const [riskMonitoring, setRiskMonitoring] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [achievedFilter, setAchievedFilter] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  
+
   const fetchUserProfile = async () => {
     try {
       const {
@@ -65,12 +69,6 @@ const AdminDashboard = () => {
         trigger: null,
       });
     };
-
-    Object.values(VALUES).forEach((value) => {
-      if (value > 60) {
-        scheduleNotification(value);
-      }
-    });
   }, [user]);
 
   const getProgressColor = (value) => {
@@ -81,33 +79,73 @@ const AdminDashboard = () => {
   };
 
   const COLORS = {
-    MANPOWER: "#FF5252",
-    FINANCIAL: "#FF9800",
-    ENVIRONMENTAL: "#FFEB3B",
-    SAFETY: "#4CAF50",
+    Manpower: "#FF5722",
+    Financial: "#3F51B5",
+    Industrial: "#9C27B0",
+    Acads: "#4CAF50",
+    Operational: "#FFC107",
+    "Social/Behavior": "#E91E63",
   };
 
-  const VALUES = {
-    MANPOWER: 20,
-    FINANCIAL: 34,
-    ENVIRONMENTAL: 52,
-    SAFETY: 72,
+  const fetchRiskMonitoring = async () => {
+    try {
+      const { data, error } = await supabase.from("risk_monitoring").select(
+        `id,
+          risks (
+            rrn,
+            risk_statement,
+            classification:classification(name)
+          ),
+          likelihood_rating:likelihood_rating_id(name),
+          severity:severity_id(name),
+          control_rating:control_rating_id(name),
+          monitoring_rating:monitoring_rating_id(status),
+          is_achieved`
+      );
+
+      if (error) throw error;
+
+      const transformedData = data.map((item) => ({
+        id: item.id,
+        rrn: item.risks?.rrn || "N/A",
+        risk_statement: item.risks?.risk_statement || "No statement available",
+        classification: item.risks?.classification?.name || "Unknown",
+        likelihood_rating: item.likelihood_rating?.name || "N/A",
+        severity: item.severity?.name || "N/A",
+        control_rating: item.control_rating?.name || "N/A",
+        monitoring_rating: item.monitoring_rating?.status || "N/A",
+        is_achieved: item.is_achieved,
+      }));
+
+      setRiskMonitoring(transformedData);
+      setFilteredData(transformedData);
+    } catch (error) {
+      console.error("Error fetching risk monitoring data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const risksData = [
-    { value: VALUES.MANPOWER, color: COLORS.MANPOWER, label: "Manpower" },
-    { value: VALUES.FINANCIAL, color: COLORS.FINANCIAL, label: "Financial" },
-    {
-      value: VALUES.ENVIRONMENTAL,
-      color: COLORS.ENVIRONMENTAL,
-      label: "Environmental",
-    },
-    { value: VALUES.SAFETY, color: COLORS.SAFETY, label: "Safety" },
-  ];
+  useEffect(() => {
+    fetchRiskMonitoring();
+  }, []);
+
+  const getPieData = () => {
+    const classificationCounts = riskMonitoring.reduce((acc, item) => {
+      const key = item.classification || "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(classificationCounts).map(([key, value]) => ({
+      value,
+      color: COLORS[key] || COLORS.Unknown,
+      label: key,
+    }));
+  };
 
   const fetchPlansData = async () => {
     try {
-      // Fetch plans monitoring data along with profiles and department names
       const { data: plansMonitoring, error } = await supabase.from(
         "plan_monitoring"
       ).select(`
@@ -272,46 +310,50 @@ const AdminDashboard = () => {
     }
   };
 
-  const renderDot = (color) => {
-    return (
-      <View
-        style={{
-          height: 10,
-          width: 10,
-          borderRadius: 5,
-          backgroundColor: color,
-          marginRight: 10,
-        }}
-      />
-    );
-  };
+  const renderDot = (color) => (
+    <View
+      style={{
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: color,
+        marginRight: 10,
+      }}
+    />
+  );
 
   const renderLegendComponent = () => {
+    const classificationCounts = riskMonitoring.reduce((acc, item) => {
+      const key = item.classification || "Unknown";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    const availableClassifications = Object.keys(classificationCounts);
+
     return (
-      <>
-        <View style={styles.legendContainer}>
-          <View style={styles.legendRow}>
-            {renderDot(COLORS.MANPOWER)}
-            <Text style={styles.legendText}>Manpower: {VALUES.MANPOWER}</Text>
-          </View>
-          <View style={styles.legendRow}>
-            {renderDot(COLORS.ENVIRONMENTAL)}
-            <Text style={styles.legendText}>
-              Environmental: {VALUES.ENVIRONMENTAL}
-            </Text>
-          </View>
+      <View style={styles.legendContainer}>
+        <View style={styles.legendRow}>
+          {availableClassifications.slice(0, 4).map((classification) => (
+            <View key={classification} style={styles.legendItem}>
+              {renderDot(COLORS[classification] || COLORS.Unknown)}
+              <Text style={styles.legendText}>
+                {classification}: {classificationCounts[classification]}
+              </Text>
+            </View>
+          ))}
         </View>
-        <View style={styles.legendContainer}>
-          <View style={styles.legendRow}>
-            {renderDot(COLORS.FINANCIAL)}
-            <Text style={styles.legendText}>Financial: {VALUES.FINANCIAL}</Text>
-          </View>
-          <View style={styles.legendRow}>
-            {renderDot(COLORS.SAFETY)}
-            <Text style={styles.legendText}>Safety: {VALUES.SAFETY}</Text>
-          </View>
+        <View style={styles.legendRow}>
+          {availableClassifications.slice(4).map((classification) => (
+            <View key={classification} style={styles.legendItem}>
+              {renderDot(COLORS[classification] || COLORS.Unknown)}
+              <Text style={styles.legendText}>
+                {classification} ({classificationCounts[classification]})
+              </Text>
+            </View>
+          ))}
         </View>
-      </>
+      </View>
     );
   };
 
@@ -329,14 +371,23 @@ const AdminDashboard = () => {
           <Text style={styles.greetingSub}>Welcome Back!</Text>
         </View>
         <View style={styles.mainContainer}>
-          <TouchableOpacity style={styles.risksContainer}>
-            <Text style={styles.cardTitle}>Total Risks</Text>
+          <View style={styles.risksContainer}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Total Risks</Text>
+              <TouchableOpacity onPress={() => router.push("/(tabs)/risks")}>
+                <MaterialIcons
+                  name="keyboard-double-arrow-right"
+                  size={24}
+                  color="#BB86FC"
+                />
+              </TouchableOpacity>
+            </View>
             <View style={styles.pieChartContainer}>
               <PieChart
                 donut
-                data={risksData}
+                data={getPieData()}
                 radius={100}
-                innerRadius={60}
+                innerRadius={70}
                 innerCircleColor={"#212121"}
                 centerLabelComponent={() => (
                   <Text style={styles.centerLabel}>Risks</Text>
@@ -344,7 +395,7 @@ const AdminDashboard = () => {
               />
             </View>
             {renderLegendComponent()}
-          </TouchableOpacity>
+          </View>
 
           <View style={styles.plansContainer}>
             <View style={styles.cardHeader}>
@@ -461,18 +512,20 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   legendContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 18,
+    marginTop: 20,
   },
   legendRow: {
     flexDirection: "row",
+    justifyContent: "space-evenly",
+    marginBottom: 10,
+  },
+  legendItem: {
+    flexDirection: "row",
     alignItems: "center",
-    width: 120,
-    marginRight: 20,
+    marginHorizontal: 10,
   },
   legendText: {
-    color: "#fff",
+    color: "#FFF",
     fontSize: 12,
   },
   cardHeader: {

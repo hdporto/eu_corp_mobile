@@ -16,6 +16,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import SimpleLineIcons from "@expo/vector-icons/SimpleLineIcons";
 import Entypo from "@expo/vector-icons/Entypo";
+import { Picker } from "@react-native-picker/picker";
 
 const COLORS = {
   Manpower: "#FF5722",
@@ -31,6 +32,8 @@ const AdminRisks = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [achievedFilter, setAchievedFilter] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [selectedRisk, setSelectedRisk] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [showClassificationModal, setShowClassificationModal] = useState(false);
@@ -90,6 +93,7 @@ const AdminRisks = () => {
 
   useEffect(() => {
     fetchRiskMonitoring();
+    fetchDepartments();
   }, []);
 
   const getPieData = () => {
@@ -104,6 +108,18 @@ const AdminRisks = () => {
       color: COLORS[key] || COLORS.Unknown,
       label: key,
     }));
+  };
+
+  const fetchDepartments = async () => {
+    const { data, error } = await supabase
+      .from("departments")
+      .select("id, name");
+
+    if (error) {
+      console.error("Error fetching departments:", error);
+    } else {
+      setDepartments(data);
+    }
   };
 
   const handleFilterChange = (status) => {
@@ -147,7 +163,7 @@ const AdminRisks = () => {
             <View key={classification} style={styles.legendItem}>
               {renderDot(COLORS[classification] || COLORS.Unknown)}
               <Text style={styles.legendText}>
-                {classification} {classificationCounts[classification]}
+                {classification}: {classificationCounts[classification]}
               </Text>
             </View>
           ))}
@@ -222,8 +238,17 @@ const AdminRisks = () => {
             />
             {renderLegendComponent()}
           </View>
-
           <View style={styles.mainContainer}>
+            <Picker
+              selectedValue={selectedDepartment}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedDepartment(itemValue)}
+            >
+              <Picker.Item label="All Departments" value="all" />
+              {departments.map((dept) => (
+                <Picker.Item key={dept.id} label={dept.name} value={dept.id} />
+              ))}
+            </Picker>
             <View style={styles.filterContainer}>
               <TouchableOpacity
                 style={[
@@ -401,10 +426,16 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 12,
   },
+  picker: {
+    height: 50,
+    width: "100%",
+    color: "white",
+    backgroundColor: "#1E1E1E",
+  },
   filterContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 16,
+    marginVertical: 16,
   },
   filterButton: {
     paddingHorizontal: 24,
