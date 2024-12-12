@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  Image,
 } from "react-native";
 import { supabase } from "../../utils/supabaseClient";
 import { useRouter } from "expo-router";
@@ -48,14 +49,16 @@ const AuthScreen = () => {
 
         // Add user to `profiles` table
         if (user) {
-          const { error: profileError } = await supabase.from("profiles").insert({
-            id: user.id,
-            email: user.email,
-            first_name: firstName,
-            last_name: lastName,
-            role: "user",
-            is_verified: false,
-          });
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .insert({
+              id: user.id,
+              email: user.email,
+              first_name: firstName,
+              last_name: lastName,
+              role: "user",
+              is_verified: false,
+            });
           if (profileError) throw new Error("Profile creation failed.");
         }
 
@@ -98,7 +101,13 @@ const AuthScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{isLogin ? "Login" : "Create an Account"}</Text>
+      <Image
+        source={require("../../assets/instituologo_white.png")}
+        style={styles.logo}
+      />
+      <Text style={styles.title}>
+        {isLogin ? "Login" : "Create an Account"}
+      </Text>
       <Text style={styles.subtitle}>
         {isLogin
           ? "Sign in to access your account"
@@ -180,19 +189,27 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#121212",
     justifyContent: "center",
+  },
+  logo: {
+    width: 150,
+    height: 150,
+    alignSelf: "center",
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 10,
+    color: "white",
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
+    color: "white",
   },
   input: {
     backgroundColor: "#ffffff",
@@ -232,7 +249,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   switchModeText: {
-    color: "#6200ee",
+    color: "#BB86FC",
     fontSize: 16,
   },
 });

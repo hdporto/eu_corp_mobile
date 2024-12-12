@@ -46,7 +46,7 @@ const Welcome = () => {
   }, []);
 
   return (
-    <SafeAreaView style={{ backgroundColor: "#F9F9F9" }} className="flex-1">
+    <SafeAreaView style={{ backgroundColor: "#121212" }} className="flex-1">
       <View className="flex-1 items-center justify-center">
         {/* Illustration */}
         <Animated.View style={imageStyle} className="mb-8">
@@ -61,10 +61,10 @@ const Welcome = () => {
           style={titleStyle}
           className="text-center px-8 space-y-4"
         >
-          <Text className="text-4xl font-bold text-gray-800 text-center">
+          <Text className="text-4xl font-bold text-white text-center">
             Welcome to EuCorp
           </Text>
-          <Text className="text-lg text-gray-600 text-center mt-2">
+          <Text className="text-lg text-white text-center mt-2">
             Enverga Universities' Insitutional Planning System
           </Text>
         </Animated.View>
@@ -74,7 +74,7 @@ const Welcome = () => {
             <Link
               href="/(auth)/login"
               style={{
-                backgroundColor: "#6A5ACD",
+                backgroundColor: "#BB86FC",
                 paddingVertical: 16, // Larger padding
                 paddingHorizontal: 60, // Larger button width
                 borderRadius: 30, // Larger border radius for a rounded look
