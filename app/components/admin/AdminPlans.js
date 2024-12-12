@@ -98,7 +98,7 @@ const PlansScreen = () => {
     const { data, error } = await supabase.from("plan_monitoring").select(`
         action_plan_id,
         is_accomplished,
-        profiles!inner(department_id, departments(name)),
+        department_id,
         action_plans!inner(actions_taken)
       `);
 
